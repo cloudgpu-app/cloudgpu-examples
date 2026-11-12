@@ -6,7 +6,7 @@ Everything here runs against the public endpoint `https://cloudgpu.app/v1`. It i
 
 ## Let your AI coding assistant rent the GPU
 
-[cloudgpu-mcp](https://github.com/mrhy7176/cloudgpu-mcp) is an MCP server for Cursor, Cline, opencode, Claude Code, VS Code and other MCP clients. Ask the assistant to fine-tune or run something on a GPU, and it quotes the price, rents a GPU once you agree, runs the job, downloads the results and shuts the GPU down. CloudGPU's servers enforce a budget and time limit on every instance it rents.
+[cloudgpu-mcp](https://github.com/cloudgpu-app/cloudgpu-mcp) is an MCP server for Cursor, Cline, opencode, Claude Code, VS Code and other MCP clients. Ask the assistant to fine-tune or run something on a GPU, and it quotes the price, rents a GPU once you agree, runs the job, downloads the results and shuts the GPU down. CloudGPU's servers enforce a budget and time limit on every instance it rents.
 
 ```bash
 claude mcp add cloudgpu --env CLOUDGPU_API_KEY=cgw-sk-... -- npx -y cloudgpu-mcp
