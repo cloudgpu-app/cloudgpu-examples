@@ -1,62 +1,9 @@
+# Native-client compatibility check
 
-# Claude Code with cloudgpu.app
+This is a historical integration path, not a claim that every current Claude Code feature or Claude model is supported by CloudGPU. Consult current client terms, the [API documentation](https://cloudgpu.app/api/docs), [model list](https://cloudgpu.app/v1/models) and [pricing](https://cloudgpu.app/pricing) before configuring it.
 
-Claude Code works with cloudgpu.app out of the box. Point the official Claude Code CLI (or the Claude Code IDE extensions, which read the same settings) at our endpoint with your cloudgpu.app key, and every Claude model below is billed at half the official per-token price from your prepaid balance.
+Claude Code uses a Messages-format API. An OpenAI-compatible chat endpoint alone does not establish compatibility with that format, authentication method, model aliases, streaming, tools or other native-client features. Verify each required capability before running an agentic session that may send many requests.
 
-Claude Code speaks the Claude Messages API format (`POST /v1/messages`), so it needs the gateway's Messages endpoint, not the OpenAI-compatible one.
+Use the client's supported secure credential mechanism. Do not paste keys into chat or commit them into settings. Select actual currently available model IDs rather than copying historical aliases from older examples. No fixed discount, model availability or successful current native-client session is asserted here.
 
-## 1. Environment variables
-
-```bash
-export ANTHROPIC_BASE_URL=https://cloudgpu.app
-export ANTHROPIC_AUTH_TOKEN=cgw-sk-...
-export ANTHROPIC_MODEL=claude-sonnet-5-5          # or claude-opus-5-5
-export ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-sonnet-5-5
-claude
-```
-
-- `ANTHROPIC_BASE_URL` is the bare host. Claude Code appends `/v1/messages` itself; do not add `/v1`.
-- `ANTHROPIC_AUTH_TOKEN` is sent as `Authorization: Bearer cgw-sk-...`.
-- `ANTHROPIC_DEFAULT_HAIKU_MODEL` matters: Claude Code uses the Haiku slot for background tasks (titles, summaries, quick checks). There is no Haiku model on the gateway, so without this line those calls ask for a model the gateway does not serve and error. Mapping it to `claude-sonnet-5-5` makes them work; they are billed at Sonnet prices.
-
-Optional, if you switch models with `/model` and want the `opus` / `sonnet` aliases to resolve to IDs the gateway serves:
-
-```bash
-export ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-5-5
-export ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5-5
-```
-
-## 2. Or put it in `~/.claude/settings.json`
-
-So it applies to every session without touching your shell profile:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_BASE_URL": "https://cloudgpu.app",
-    "ANTHROPIC_AUTH_TOKEN": "cgw-sk-...",
-    "ANTHROPIC_MODEL": "claude-sonnet-5-5",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-sonnet-5-5"
-  }
-}
-```
-
-Use `claude-opus-5-5` as `ANTHROPIC_MODEL` if you want Opus by default. A project-level `.claude/settings.json` works the same way, but do not commit a file that contains your key.
-
-## 3. Check it
-
-```bash
-claude -p "Reply with the single word: ok"
-```
-
-Then check that the request shows up in usage on https://cloudgpu.app/api/console.
-
-## Troubleshooting
-
-- **401 / auth errors**: the key must be a cloudgpu.app key (`cgw-sk-...`). If you were previously signed in to Claude Code with another account, sign out with `/logout` and start again so the environment variables are used.
-- **404**: `ANTHROPIC_BASE_URL` must be `https://cloudgpu.app`, not `https://cloudgpu.app/v1`.
-- **Model errors on background tasks**: `ANTHROPIC_DEFAULT_HAIKU_MODEL` is not set, so Claude Code is asking for a Haiku model.
-
-## Cost
-
-Per million tokens, 8 October 2026: `claude-sonnet-5-5` $1.00 in / $5.00 out, `claude-opus-5-5` $2.00 / $10.00 (half the official price). Agentic sessions re-send a lot of context, so input tokens dominate. Live prices: https://cloudgpu.app/api.
+For GPU orchestration using MCP instead of a model-provider substitution, use the [current MCP client setup instructions](https://cloudgpu.app/docs/mcp), the [Agent Skills](https://github.com/cloudgpu-app/cloudgpu-agent-skills), or the [read-only compute discovery example](../../agent-readiness/).
