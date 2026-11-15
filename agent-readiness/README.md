@@ -1,4 +1,4 @@
-# Read-only GPU task discovery with CrewAI
+# GPU task discovery and planning estimates with CrewAI
 
 Give a CrewAI agent a compute-discovery tool without granting it payment or allocation privileges. It uses a fixed public GET endpoint, validates the response contract and preserves known issues and insufficient reliability samples. No model inference is invoked by the smoke test.
 
@@ -11,22 +11,25 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 python readiness.py
+python readiness.py --quote
 ```
 
 Expected: a JSON summary with `read_only: true`, task types, source-specific billing, known issues and `paid_work_approved: false`. On network/contract failure, the result says `status: unavailable`; it does not substitute a successful response.
+
+The `--quote` path makes an anonymous planning-estimate POST to `/v1/quotes`, not an allocation. Its current scope is minute-billed supply only. It returns candidate costs, starting balance, minimum/increment, expiry and reported Job compatibility, with `paid_work_approved: false` and `gpu_reserved: false`. Whole-hour supply requires a separate binding quote. Invalid limits are rejected before network access.
 
 ## Add to an existing CrewAI agent
 
 ```python
 from crewai import Agent
-from readiness import CloudGPUReadinessTool
+from readiness import CloudGPUReadinessTool, CloudGPUEstimateTool
 
 # Your existing LLM configuration may incur that provider's charges.
 planner = Agent(
     role="Compute planner",
     goal="Assess task fit and limitations; never allocate without owner approval",
     backstory="Compare workload requirements with the public compute contract.",
-    tools=[CloudGPUReadinessTool()],
+    tools=[CloudGPUReadinessTool(), CloudGPUEstimateTool()],
 )
 ```
 
@@ -36,4 +39,4 @@ Service eligibility and current terms: https://cloudgpu.app/terms . The example 
 
 ## Verification
 
-Tested with Python 3.12.14 and CrewAI 1.6.1 by directly invoking the actual CrewAI tool against the anonymous endpoint; no LLM calls or GPU allocations. Tested failure handling for invalid and oversized responses. This is not a paid-Job or end-to-end Crew execution acceptance test.
+Tested with Python 3.12.14 and CrewAI 1.6.1 by directly invoking the actual CrewAI tool against the anonymous endpoint; no LLM calls or GPU allocations. Readiness and estimate tools were invoked against actual anonymous production endpoints, without LLM calls or allocations. Seven tests cover invalid/oversized responses, changed contracts, preserved unknown reliability, fixed estimate endpoint/scope and rejected input limits. This is not a paid-Job or end-to-end Crew execution acceptance test.

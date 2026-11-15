@@ -14,7 +14,7 @@ This is read-only: no key, no GPU allocation, no charge. Read supported task typ
 
 ## A real framework tool
 
-[`agent-readiness/`](agent-readiness/) demonstrates CrewAI compute discovery using the actual tool interface. The smoke test invokes no LLM and creates no GPU. It preserves unknown reliability rates and fails closed on unavailable or changed contracts.
+[`agent-readiness/`](agent-readiness/) demonstrates CrewAI compute discovery and minute-source planning estimates using the actual tool interface. The smoke test invokes no LLM and creates no GPU. It preserves unknown reliability rates and fails closed on unavailable or changed contracts.
 
 ## Connect your agent
 
