@@ -1,73 +1,53 @@
-# cloudgpu-examples
+# CloudGPU · compute examples for agents
 
-Code examples for [cloudgpu.app](https://cloudgpu.app/?utm_source=github): GPU rental billed by the minute and an OpenAI-compatible AI API gateway, on one prepaid balance, for developers outside mainland China.
+Give an agent a way to discover compute, obtain explicit spending approval, run bounded work and verify its outputs. Service eligibility: developers outside mainland China; see [current terms](https://cloudgpu.app/terms).
 
-Everything here runs against the public endpoint `https://cloudgpu.app/v1`. It is OpenAI-compatible, so the official OpenAI SDKs work unchanged: set `base_url` and use a CloudGPU API key.
+## Start without an account
 
-## Let your AI coding assistant rent the GPU
-
-[cloudgpu-mcp](https://github.com/cloudgpu-app/cloudgpu-mcp) is an MCP server for Cursor, Cline, opencode, Claude Code, VS Code and other MCP clients. Ask the assistant to fine-tune or run something on a GPU, and it quotes the price, rents a GPU once you agree, runs the job, downloads the results and shuts the GPU down. CloudGPU's servers enforce a budget and time limit on every instance it rents.
-
-```bash
-claude mcp add cloudgpu --env CLOUDGPU_API_KEY=cgw-sk-... -- npx -y cloudgpu-mcp
+```sh
+curl --fail --silent --show-error https://cloudgpu.app/v1/public/agent-self-check
 ```
 
-Setup for every client: https://cloudgpu.app/docs/mcp
+This is read-only: no key, no GPU allocation, no charge. Read supported task types, actual billing rules, known issues and reliability sample sufficiency before planning a task. A responsive control plane does not guarantee generation or upstream capacity.
 
-## Claude at half the official price
+[Try the interactive Compute Lab](https://cloudgpu-app.github.io/cloudgpu-agent-skills/) · [Agent contract](https://cloudgpu.app/agent-contract.json) · [Live catalog](https://cloudgpu.app/v1/public/gpu-catalog)
 
-Claude Opus, Sonnet and Fable are on the same endpoint, at 50% of the official per-token price. Full examples and tool guides: [`claude/`](claude/README.md).
+## A real framework tool
 
-No Haiku model. Current per-token prices for every model: https://cloudgpu.app/pricing.
+[`agent-readiness/`](agent-readiness/) demonstrates CrewAI compute discovery using the actual tool interface. The smoke test invokes no LLM and creates no GPU. It preserves unknown reliability rates and fails closed on unavailable or changed contracts.
 
-```python
-from openai import OpenAI
+## Connect your agent
 
-client = OpenAI(base_url="https://cloudgpu.app/v1", api_key="cgw-sk-...")
-resp = client.chat.completions.create(
-    model="claude-sonnet-5-5",
-    messages=[{"role": "user", "content": "Write a unit test for this function."}],
-)
-print(resp.choices[0].message.content)
+[CloudGPU MCP](https://github.com/cloudgpu-app/cloudgpu-mcp) provides local stdio and remote Streamable HTTP. See the current [client setup instructions](https://cloudgpu.app/docs/mcp), including Codex, Claude and compatible remote clients.
+
+```sh
+npx skills add cloudgpu-app/cloudgpu-agent-skills
 ```
 
-Works in Cursor, Cline, Continue and OpenClaw through the OpenAI-compatible endpoint, and in Claude Code and the `anthropic` SDKs through the native `/v1/messages` endpoint ([setup guides](claude/README.md#tools)).
+An installed skill does not rent compute. Owner authorization and explicit paid-work approval are separate steps. Keep keys in your client's secure credential mechanism, not chat or copied source.
 
-| Example | What it shows |
-|---|---|
-| [`python/chat.py`](python/chat.py) | Chat completion with the `openai` package, streaming on |
-| [`python/image_flux.py`](python/image_flux.py) | Image generation with FLUX.1 through `/v1/images/generations` |
-| [`python/transcribe.py`](python/transcribe.py) | Speech to text with Whisper through `/v1/audio/transcriptions` |
-| [`node/chat.mjs`](node/chat.mjs) | Same chat call from Node.js with the `openai` package |
-| [`curl/chat.sh`](curl/chat.sh) | The raw HTTP request, nothing else |
-| [`claude/`](claude/README.md) | Claude via the OpenAI SDK (Python, Node), cURL, and tool guides for Cursor, Cline, Continue, OpenClaw and Claude Code |
-| [`curl/models.sh`](curl/models.sh) | List the models your key can call |
-| [`cursor/README.md`](cursor/README.md) | Cursor, Cline and Continue settings |
-| [`ollama-on-rented-gpu/README.md`](ollama-on-rented-gpu/README.md) | Calling Ollama or vLLM on a GPU you rented, via its public HTTPS endpoint |
-| [`ai-sdk/`](ai-sdk/README.md) | Vercel AI SDK (`@ai-sdk/openai-compatible`): generateText and streamText |
+## Inspect three narrowly verified task recipes
 
-## Setup
+The [published scripts and acceptance evidence](https://github.com/cloudgpu-app/cloudgpu-mcp/tree/main/examples/verified-tasks) cover:
 
-1. Create an account at https://cloudgpu.app/login (email or Google; no phone number or card needed to sign up).
-2. Create an API key on the [API console](https://cloudgpu.app/api/console?utm_source=github).
-3. Export it:
+| Small internal smoke test | Successful task elapsed | Final GPU fee for successful attempt |
+| --- | ---: | ---: |
+| GPU environment check | 191 seconds | $0.0048 |
+| Wan2.1 1.3B ComfyUI video, 17 frames at 256×256 | 1,064 seconds | $0.1105 |
+| SmolLM2-135M causal-LM LoRA, 8 steps | 190 seconds | $0.0097 |
 
-```bash
-export CLOUDGPU_API_KEY=cgw-sk-...
-```
+These are historical internal tests, not price quotes, production success rates or arbitrary model guarantees. Video succeeded in 1 of 12 evolving development attempts (all attempts $0.8775); LoRA succeeded in 1 of 4 (all attempts $0.0339). The LoRA example is not image/diffusion LoRA. Read current evidence before execution.
 
-## Models
+## Billing and result persistence
 
-Model IDs and current per-token prices are listed live at https://cloudgpu.app/api. As of 8 September 2026 the text models are `deepseek-v4-flash`, `deepseek-v4-pro`, `glm-5.3-flash`, `glm-5.2`, `glm-5.1`, `kimi-k3`, `kimi-k2.7-code`, `kimi-k2.6`, `kimi-k2.5`, `minimax-m3` and `gpt-oss-120b`; image models `flux-1-schnell` and `flux-1-dev`; speech `kokoro-tts` and `chatterbox-tts`; transcription `whisper-v3` and `whisper-v3-turbo`. `curl/models.sh` prints the live list.
+Billing depends on the selected source. Minute-billed sources round partial minutes up. Whole-hour sources have a one-hour minimum and charge every started hour in full, including an early stop. Read the binding billing quote, minimum charge, start condition, expiry and hard spend/time limits before approving allocation. Do not infer billing from the GPU model.
 
-## Notes
+Instance disks are erased on termination. Configure and verify saved Job outputs or Workspace storage before relying on persistence. Storage budgets, retention and transfer limits are separate from compute. Only choose Job-compatible inventory; reconcile uncertain creates instead of blindly retrying.
 
-- Billing is prepaid. Top up at https://cloudgpu.app/billing with Alipay, Google Pay, Apple Pay, Visa or Mastercard from $5 in one checkout, or USDT (TRC-20). Unused balance does not expire.
-- The gateway runs in Hong Kong and forwards each request to the infrastructure serving that model; there is no automatic failover. Prompt and completion bodies are not stored; token counts, model, latency and error codes are kept for billing.
-- Issues and pull requests welcome. If an example stops working, open an issue and we will fix it the same day.
+## Existing API examples
 
-## License
+The `python/`, `node/`, `curl/`, `ai-sdk/`, `cursor/`, `claude/` and `ollama-on-rented-gpu/` directories contain earlier integration examples. Treat model identifiers, prices and availability in those files as historical examples; consult the live model catalog and pricing before use. Their presence is not a claim of a current discount, free GPU entitlement or validated end-to-end run.
 
-MIT
+[Agent API documentation](https://cloudgpu.app/docs/agents) · [Live model list](https://cloudgpu.app/v1/models) · [Pricing](https://cloudgpu.app/pricing)
 
-Maintained with the Claude Code GitHub Action.
+MIT; third-party model and dataset licenses remain separate.
