@@ -36,4 +36,4 @@ Service eligibility and current terms: https://cloudgpu.app/terms . The example 
 
 ## Verification
 
-Tested by directly invoking the actual CrewAI tool against the anonymous endpoint; no LLM calls or GPU allocations. Tested failure handling for invalid and oversized responses. This is not a paid-Job or end-to-end Crew execution acceptance test.
+Tested with Python 3.12.14 and CrewAI 1.6.1 by directly invoking the actual CrewAI tool against the anonymous endpoint; no LLM calls or GPU allocations. Tested failure handling for invalid and oversized responses. This is not a paid-Job or end-to-end Crew execution acceptance test.
